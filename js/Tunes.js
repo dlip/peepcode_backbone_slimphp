@@ -19,7 +19,24 @@ $(function() {
     model: Album,
     url: '/albums'
   });
-  window.LibraryAlbumView = AlbumView.extend();
+  window.Playlist = Albums.extend({
+    isFirstAlbum: function() {
+      return index === 0;
+    },
+    isLastAlbum: function() {
+      return index === this.models.length - 1;
+    }
+  });
+  window.library = new Albums();
+  window.LibraryAlbumView = AlbumView.extend({
+    events: {
+      'click .queue.add': 'select'
+    },
+    select: function() {
+      this.collection.trigger('select', this.model);
+      return console.log('Triggered select', this.model);
+    }
+  });
   window.LibraryView = Backbone.View.extend({
     tagName: 'section',
     className: 'library',
@@ -45,6 +62,98 @@ $(function() {
       return this;
     }
   });
+  window.Player = Backbone.Model.extend({
+    defaults: {
+      'currentAlbumIndex': 0,
+      'currentTrackIndex': 0,
+      'state': 'stop'
+    },
+    initialize: function() {
+      return this.playlist = new Playlist();
+    },
+    play: function() {
+      return this.set({
+        'state': 'play'
+      });
+    },
+    pause: function() {
+      return this.set({
+        'state': 'pause'
+      });
+    },
+    isPlaying: function() {
+      return this.get('state' === 'play');
+    },
+    isPlaying: function() {
+      return !this.isPlaying();
+    },
+    currentAlbum: function() {
+      return this.playlist.at(this.get('currentAlbumIndex'));
+    },
+    currentTrackUrl: function() {
+      var album;
+      album = this.currentAlbum();
+      return album.trackUrlAtIndex(this.get('currentTrackIndex'));
+    },
+    nextTrack: function() {
+      var currentAlbumIndex, currentTrackIndex;
+      currentTrackIndex = this.get('currentTrackIndex');
+      currentAlbumIndex = this.get('currentAlbumIndex');
+      if (this.currentAlbum().isLastTrack(currentTrackIndex)) {
+        if (this.playlist.isLastAlbum(currentAlbumIndex)) {
+          this.set({
+            'currentAlbumIndex': 0
+          });
+          this.set({
+            'currentTrackIndex': 0
+          });
+        } else {
+          this.set({
+            'currentAlbumIndex': currentAlbumIndex + 1
+          });
+          this.set({
+            'currentTrackIndex': 0
+          });
+        }
+      } else {
+
+      }
+      this.set({
+        'currentTrackIndex': currentTrackIndex + 1
+      });
+      return this.logCurrentAlbumAndTrack();
+    },
+    prevTrack: function() {
+      var currentAlbumIndex, currentTrackIndex, lastModelIndex, lastTrackIndex;
+      currentTrackIndex = this.get('currentTrackIndex');
+      currentAlbumIndex = this.get('currentAlbumIndex');
+      lastModelIndex = 0;
+      if (this.currentAlbum().isFirstTrack(currentTrackIndex)) {
+        if (this.playlist.isFirstAlbum(currentAlbumIndex)) {
+          lastModelIndex = this.playlist.models.length - 1;
+          this.set({
+            'currentAlbumIndex': lastModelIndex
+          });
+        } else {
+          this.set({
+            'currentAlbumIndex': currentAlbumIndex - 1
+          });
+        }
+        lastTrackIndex = (this.currentAlbum().get('tracks')).length - 1;
+        this.set({
+          'currentTrackIndex': lastTrackIndex
+        });
+      } else {
+        this.set({
+          'currentTrackIndex': currentTrackIndex - 1
+        });
+      }
+      return this.logCurrentAlbumAndTrack();
+    },
+    logCurrentAlbumAndTrack: function() {
+      return console.log("Player " + this.get('currentAlbumIndex') + ':' + this.get('currentTrackIndex'), this);
+    }
+  });
   window.library = new Albums();
   window.BackboneTunes = Backbone.Router.extend({
     routes: {
@@ -67,10 +176,8 @@ $(function() {
       return $('#container').text('blank');
     }
   });
-  return $(function() {
-    window.App = new BackboneTunes();
-    return Backbone.history.start({
-      pushState: true
-    });
+  window.App = new BackboneTunes();
+  return Backbone.history.start({
+    pushState: true
   });
 });

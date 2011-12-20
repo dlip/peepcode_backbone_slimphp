@@ -5,12 +5,16 @@
 <link rel="stylesheet" type="text/css" href="style/screen.css">
 <link rel="stylesheet" type="text/css" href="style/fancypants.css">
 
-<script src="js/underscore.js"></script>
-<script src="js/jquery-1.7.1.min.js"></script>
-<script src="js/backbone.js"></script>
+<script src="js/vendor/modernizr-1.6.min.js"></script>
+<script src="js/vendor/jquery-1.5.1.min.js"></script>
+<script src="js/vendor/underscore.js"></script>
+<script src="js/vendor/backbone.js"></script>
+
 <script src="js/Tunes.js"></script>
 
 <script type="text/template" id="album-template">
+  <button class="queue add"><img src="/images/add.png" /></button>
+  <button class="queue remove"><img src="/images/remove.png" /></button>
   <span class="album-title"><%= title %></span>
   <span class="artist-name"><%= artist %></span>
   <ol class="tracks">
