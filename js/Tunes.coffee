@@ -1,5 +1,15 @@
 $ ->
-  window.Album = Backbone.Model.extend()
+  window.Album = Backbone.Model.extend
+    isFirstTrack: (index) ->
+        return index is 0
+
+    isLastTrack: (index) ->
+        return index >= this.get('tracks').length - 1
+
+    trackUrlAtIndex: (index) ->
+        if (this.get('tracks').length >= index)
+            return this.get('tracks')[index].url
+        null
 
   window.AlbumView = Backbone.View.extend
     tagName: 'li'
@@ -24,15 +34,57 @@ $ ->
     isLastAlbum: ->
       index is this.models.length - 1
 
-  window.library = new Albums()
-
   window.LibraryAlbumView = AlbumView.extend
     events:
       'click .queue.add': 'select'
 
     select: ->
       this.collection.trigger('select', this.model)
-      console.log('Triggered select', this.model)
+      
+
+  window.PlaylistAlbumView = AlbumView.extend
+    events:
+      'click .queue.remove': 'removeFromPlaylist'
+
+    initialize: ->
+      _.bindAll this, 'render', 'remove'
+      this.model.bind 'remove', this.remove
+
+    removeFromPlaylist: ->
+      this.options.playlist.remove this.model
+
+  window.PlaylistView = Backbone.View.extend
+    tagName:'section'
+    className: 'playlist'
+    template: _.template($('#playlist-template').html())
+
+    initialize: ->
+      _.bindAll this, 'render', 'queueAlbum', 'renderAlbum'
+      this.collection.bind 'reset', this.render
+      this.collection.bind 'add', this.renderAlbum
+
+      this.player = this.options.player
+
+      this.library = this.options.library
+      this.library.bind 'select', this.queueAlbum
+
+    render: ->
+      $(this.el).html(this.template(this.player.toJSON()))
+      this.$('button.play').toggle(this.player.isStopped())
+      this.$('button.pause').toggle(this.player.isPlaying())
+
+      this
+
+    queueAlbum: (album)->
+      this.collection.add album
+
+    renderAlbum: (album)->
+      view = new PlaylistAlbumView
+        model: album
+        player: this.player
+        playlist: this.collectino
+
+      this.$('ul').append(view.render().el)
 
   window.LibraryView = Backbone.View.extend
     tagName: 'section'
@@ -71,9 +123,9 @@ $ ->
       this.set 'state': 'pause'
 
     isPlaying: ->
-      this.get 'state' is 'play'
+      this.get('state') is 'play'
 
-    isPlaying: ->
+    isStopped: ->
       !this.isPlaying()
 
     currentAlbum: ->
@@ -117,9 +169,8 @@ $ ->
         this.logCurrentAlbumAndTrack()
 
     logCurrentAlbumAndTrack: ->
-        console.log("Player " + this.get('currentAlbumIndex') + ':' + this.get('currentTrackIndex'), this)
-
-  window.library = new Albums()
+      null
+      #console.log("Player " + this.get('currentAlbumIndex') + ':' + this.get('currentTrackIndex'), this)
 
   window.BackboneTunes = Backbone.Router.extend
     routes:
@@ -127,17 +178,26 @@ $ ->
       'blank': 'blank'
 
     initialize: ->
+      this.playlistView = new PlaylistView
+        collection: window.player.playlist
+        player: window.player
+        library: window.library
+
       this.libraryView = new LibraryView
         collection: window.library
 
     home: ->
       $container = $ '#container'
       $container.empty()
+      $container.append(this.playlistView.render().el)
       $container.append(this.libraryView.render().el)
 
     blank: ->
       $('#container').empty()
       $('#container').text('blank')
+
+  window.library = new Albums()
+  window.player = new Player()
 
   window.App = new BackboneTunes()
   Backbone.history.start

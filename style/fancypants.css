@@ -6,11 +6,11 @@ body {
 }
 
 .album {
-	font-style: italic;
+    font-style: italic;
 }
 
 .album .artist-name {
-	font-style: normal;
+    font-style: normal;
     font-weight: lighter;
     color: #999;
 }
@@ -19,8 +19,8 @@ body {
 }
 
 .playlist {
-	color: #eee;
-	background-color: #333;
+    color: #eee;
+    background-color: #333;
 }
 
 .playlist button.control {
@@ -54,7 +54,7 @@ body {
 }
 
 .playlist .album.current {
-	background-color: #383838;
+    background-color: #383838;
 }
 
 .playlist .album.current .tracks .current {
@@ -62,8 +62,8 @@ body {
 }
 
 .playlist .album .tracks li {
-	font-style: normal;
-	padding: .3em;
+    font-style: normal;
+    padding: .3em;
 }
 
 .library {
